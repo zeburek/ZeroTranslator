@@ -1,5 +1,7 @@
 package ru.zerotime.translator;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,15 +17,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import org.w3c.dom.Text;
-
+import java.net.URL;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,9 +44,10 @@ public class MainActivity extends AppCompatActivity {
     public TextView outputTextView;
     public TextView copyRightTextView;
     public ListView historyListView;
+    public ListView settingsListView;
 
-    private ArrayList historyArrayList;
     private CustomAdapter historyCustomAdapter;
+    private SettingsCustomAdapter settingsCustomAdapter;
 
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -63,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
                     return true;
                 case R.id.navigation_settings:
                     layoutChanger.setSelectedLayout("settings");
+                    setSettingsToView();
+                    setSettingsActionListener();
                     return true;
             }
             return false;
@@ -70,9 +74,56 @@ public class MainActivity extends AppCompatActivity {
 
     };
 
+    private void setSettingsToView() {
+        settingsListView = (ListView) findViewById(R.id.settingsListView);
+        ArrayList<TSettingsListItem> settingsArrayList = new ArrayList<TSettingsListItem>();
+        int count = tHistoryBookmarksProvider.getHistoryLength()-1;
+        TSettingsListItem clearHistoryListItem = new TSettingsListItem();
+        clearHistoryListItem.setMainText("Очистить историю");
+        clearHistoryListItem.setDescText("Все записи будут удалены из истории");
+        settingsArrayList.add(clearHistoryListItem);
+
+        TSettingsListItem clearAllListItem = new TSettingsListItem();
+        clearAllListItem.setMainText("Очистить все данные");
+        clearAllListItem.setDescText("Будут очищены история и закладки");
+        settingsArrayList.add(clearAllListItem);
+
+        TSettingsListItem aboutListItem = new TSettingsListItem();
+        aboutListItem.setMainText("О программе");
+        aboutListItem.setDescText("Zero.Translator, Версия: "+BuildConfig.VERSION_NAME);
+        settingsArrayList.add(aboutListItem);
+
+        settingsCustomAdapter = new SettingsCustomAdapter(this,settingsArrayList);
+        settingsListView.setAdapter(settingsCustomAdapter);
+    }
+
+    private void setSettingsActionListener(){
+        settingsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                if(position == 0) {
+                    tHistoryBookmarksProvider.clearHistoryOnly();
+                    editText.setText("");
+                    outputTextView.setText("");
+                    bookmarksToggleButton.setChecked(false);
+                    Toast.makeText(getApplicationContext(), "История очищена", Toast.LENGTH_SHORT).show();
+                }else if(position == 1) {
+                    tHistoryBookmarksProvider.clearAllData();
+                    editText.setText("");
+                    outputTextView.setText("");
+                    bookmarksToggleButton.setChecked(false);
+                    Toast.makeText(getApplicationContext(), "Данные очищены", Toast.LENGTH_SHORT).show();
+                }else if(position == 2){
+                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://parviz.pw"));
+                    startActivity(intent);
+                }
+            }
+        });
+    }
+
     private void setHistoryToView() {
         historyListView = (ListView) findViewById(R.id.historyListView);
-        historyArrayList = new ArrayList<TListItem>();
+        ArrayList<TListItem> historyArrayList = new ArrayList<TListItem>();
         int count = tHistoryBookmarksProvider.getHistoryLength()-1;
         for (int i = count;i >= 0;i--){
             String name = tHistoryBookmarksProvider.getHistoryKeyById(i);
@@ -87,7 +138,7 @@ public class MainActivity extends AppCompatActivity {
 
             historyArrayList.add(listItem);
         }
-        historyCustomAdapter = new CustomAdapter(this,historyArrayList);
+        historyCustomAdapter = new CustomAdapter(this, historyArrayList);
         historyListView.setAdapter(historyCustomAdapter);
     }
 
@@ -99,6 +150,8 @@ public class MainActivity extends AppCompatActivity {
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         layoutChanger = new TLayoutChanger(MainActivity.this);
+        tHistoryBookmarksProvider.setAppPath(MainActivity.this.getApplicationInfo().dataDir);
+        tHistoryBookmarksProvider.loadAllMapsOnDisk();
 
         submitButton = (Button)findViewById(R.id.id_execute);
         replaceButton = (Button)findViewById(R.id.id_replacebutton);
@@ -110,11 +163,11 @@ public class MainActivity extends AppCompatActivity {
         copyRightTextView = (TextView)findViewById(R.id.copyRight);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             copyRightTextView.setText(Html.fromHtml("Переведено сервисом " +
-                    "<a href='http://translate.yandex.ru/'>«Яндекс.Переводчик»</a>",
+                    "<a href='http://translate.yandex.ru/'>«<span style='color:red;'>Яндекс</span>.Переводчик»</a>",
                     Html.FROM_HTML_MODE_COMPACT));
         } else {
             copyRightTextView.setText(Html.fromHtml("Переведено сервисом " +
-                    "<a href='http://translate.yandex.ru/'>«Яндекс.Переводчик»</a>"));
+                    "<a href='http://translate.yandex.ru/'>«<span style='color:red;'>Яндекс</span>.Переводчик»</a>"));
         }
         copyRightTextView.setClickable(true);
         copyRightTextView.setMovementMethod(LinkMovementMethod.getInstance());
@@ -186,11 +239,28 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 tHistoryBookmarksProvider.setNewHistoryItem(editText.getText().toString(),s.toString(),tTranslatorClass.getLangPair());
+                tHistoryBookmarksProvider.saveAllMapsOnDisk();
             }
 
             @Override
             public void afterTextChanged(Editable s) {
 
+            }
+        });
+
+        editText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                bookmarksToggleButton.setChecked(false);
+                if(tHistoryBookmarksProvider
+                        .getBookmarkIfExistByKey(editText.getText().toString())){
+                    bookmarksToggleButton.setChecked(true);
+                }
             }
         });
     }

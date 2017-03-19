@@ -12,10 +12,15 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpParams;
 import org.apache.http.params.HttpProtocolParams;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -27,19 +32,22 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import static ru.zerotime.translator.MainActivity.TAG_ZT;
+
 /**
  * Created by zeburek on 18.03.2017.
  */
 
 public class THTTPProvider {
     /*Strings declaration*/
-    private String responsePost;
+    public String responsePostTranslate = "";
+    private String responsePostLangs;
+    public XmlPullParser langListXML = null;
 
 
     public THTTPProvider(){}
 
-    public String sendPostRequest(String url, final List<BasicNameValuePair> queryParams){
-        String respText="";
+    public void sendPostRequestToTranslate(String url, final List<BasicNameValuePair> queryParams){
         final HttpClient httpclient = new DefaultHttpClient();
         final HttpPost http = new HttpPost(url);
 
@@ -49,29 +57,42 @@ public class THTTPProvider {
                 try {
                     http.setEntity(new UrlEncodedFormEntity(queryParams,"UTF-8"));
                     //получаем ответ от сервера
-                    responsePost = httpclient.execute(http, new BasicResponseHandler());
-                    Log.e("ZeroTranslator",responsePost);
+                    String respText = httpclient.execute(http, new BasicResponseHandler());
+                    Log.d(TAG_ZT,respText);
+                    JSONObject dataJsonObj = new JSONObject(respText);
+                    responsePostTranslate = dataJsonObj.getJSONArray("text").getString(0);
                 } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (JSONException e) {
                     e.printStackTrace();
                 }
             }
         });
         t.start();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        JSONObject dataJsonObj = null;
-        try {
-            dataJsonObj = new JSONObject(responsePost);
-            respText = dataJsonObj.getJSONArray("text").getString(0);
-        //Log.e("ZeroTranslator",respText);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+    }
 
-        return respText;
+    public void sendPostRequestToGetLangList(String url, final List<BasicNameValuePair> queryParams){
+        XmlPullParser respXML = null;
+        final HttpClient httpclient = new DefaultHttpClient();
+        final HttpPost http = new HttpPost(url);
+
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    http.setEntity(new UrlEncodedFormEntity(queryParams,"UTF-8"));
+                    //получаем ответ от сервера
+                    responsePostLangs = httpclient.execute(http, new BasicResponseHandler());
+                    Log.d(TAG_ZT,responsePostLangs);
+                    parseXML(responsePostLangs);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } catch (XmlPullParserException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
     }
 
     static {
@@ -99,5 +120,12 @@ public class THTTPProvider {
         } catch (GeneralSecurityException e) {
             throw new ExceptionInInitializerError(e);
         }
+    }
+
+    private void parseXML(String strXML) throws XmlPullParserException {
+        XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+        factory.setNamespaceAware(true);
+        langListXML = factory.newPullParser();
+        langListXML.setInput( new StringReader (strXML) );
     }
 }

@@ -101,21 +101,25 @@ public class MainActivity extends AppCompatActivity {
         settingsListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if(position == 0) {
-                    tHistoryBookmarksProvider.clearHistoryOnly();
-                    editText.setText("");
-                    outputTextView.setText("");
-                    bookmarksToggleButton.setChecked(false);
-                    Toast.makeText(getApplicationContext(), "История очищена", Toast.LENGTH_SHORT).show();
-                }else if(position == 1) {
-                    tHistoryBookmarksProvider.clearAllData();
-                    editText.setText("");
-                    outputTextView.setText("");
-                    bookmarksToggleButton.setChecked(false);
-                    Toast.makeText(getApplicationContext(), "Данные очищены", Toast.LENGTH_SHORT).show();
-                }else if(position == 2){
-                    Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://parviz.pw"));
-                    startActivity(intent);
+                switch (position){
+                    case 0:
+                        tHistoryBookmarksProvider.clearHistoryOnly();
+                        editText.setText("");
+                        outputTextView.setText("");
+                        bookmarksToggleButton.setChecked(false);
+                        Toast.makeText(getApplicationContext(), "История очищена", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 1:
+                        tHistoryBookmarksProvider.clearAllData();
+                        editText.setText("");
+                        outputTextView.setText("");
+                        bookmarksToggleButton.setChecked(false);
+                        Toast.makeText(getApplicationContext(), "Данные очищены", Toast.LENGTH_SHORT).show();
+                        break;
+                    case 2:
+                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://parviz.pw"));
+                        startActivity(intent);
+                        break;
                 }
             }
         });

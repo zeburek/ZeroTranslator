@@ -1,6 +1,8 @@
 package ru.zerotime.translator;
 
+import android.app.Activity;
 import android.util.Log;
+import android.widget.TextView;
 
 import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
@@ -47,7 +49,7 @@ public class THTTPProvider {
 
     public THTTPProvider(){}
 
-    public void sendPostRequestToTranslate(String url, final List<BasicNameValuePair> queryParams){
+    public void sendPostRequestToTranslate(String url, final List<BasicNameValuePair> queryParams, final TextView exportView){
         final HttpClient httpclient = new DefaultHttpClient();
         final HttpPost http = new HttpPost(url);
 
@@ -60,7 +62,12 @@ public class THTTPProvider {
                     String respText = httpclient.execute(http, new BasicResponseHandler());
                     Log.d(TAG_ZT,respText);
                     JSONObject dataJsonObj = new JSONObject(respText);
-                    responsePostTranslate = dataJsonObj.getJSONArray("text").getString(0);
+                    if (dataJsonObj.getJSONArray("text").getString(0).equals("")){
+                        responsePostTranslate = "Задан пустой запрос";
+                    } else {
+                        responsePostTranslate = dataJsonObj.getJSONArray("text").getString(0);
+                    }
+                    setNewTranslateToOutput(exportView);
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (JSONException e) {
@@ -69,6 +76,16 @@ public class THTTPProvider {
             }
         });
         t.start();
+    }
+
+    private void setNewTranslateToOutput(final TextView exportView) {
+        Activity act = (Activity) exportView.getContext();
+        act.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                exportView.setText(responsePostTranslate);
+            }
+        });
     }
 
     public void sendPostRequestToGetLangList(String url, final List<BasicNameValuePair> queryParams){

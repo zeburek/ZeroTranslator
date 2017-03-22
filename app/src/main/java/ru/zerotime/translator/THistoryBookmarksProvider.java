@@ -24,12 +24,13 @@ public class THistoryBookmarksProvider {
     public static Map<String,Boolean> mainBookmarksMap = new HashMap<String,Boolean>();
     public static Map<String,String> mainHistoryTransMap = new LinkedHashMap<String,String>();
     public static Map<String,String> mainHistoryLangPairMap = new HashMap<String,String>();
-    private static String APP_PATH;
+    public static String APP_PATH;
 
     public THistoryBookmarksProvider(){}
 
     public void setNewHistoryItem(String text, String translatedText, String langPair){
         if (checkIfHistoryItemExists(text)){return;}
+        if (text.equals("")||translatedText.equals("")){return;}
         mainHistoryTransMap.put(text,translatedText);
         mainHistoryLangPairMap.put(text,langPair);
         Log.d(TAG_ZT, "Text: "+text
@@ -76,7 +77,7 @@ public class THistoryBookmarksProvider {
         return false;
     }
 
-    private boolean checkIfHistoryItemExists(String text){
+    public boolean checkIfHistoryItemExists(String text){
         return mainHistoryTransMap.containsKey(text);
     }
 
@@ -99,7 +100,7 @@ public class THistoryBookmarksProvider {
         }
     }
 
-    public void loadAllMapsOnDisk() {
+    public void loadAllMapsFromDisk() {
         try {
             loadMainBookmarksMap();
             loadMainHistoryTransMap();
@@ -126,6 +127,8 @@ public class THistoryBookmarksProvider {
             mainHistoryTransMap.remove(saveToDelete.get(i));
             mainHistoryLangPairMap.remove(saveToDelete.get(i));
         }
+        mainHistoryTransMap.remove("");
+        mainHistoryLangPairMap.remove("");
         saveAllMapsOnDisk();
     }
 

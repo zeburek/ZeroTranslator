@@ -2,7 +2,7 @@
 <selector xmlns:android="http://schemas.android.com/apk/res/android" >
     <item
         android:drawable="@drawable/icon_on_bookmarks"
-        android:state_checked="true" />
+        android:state_checked="true"/>
     <item
         android:drawable="@drawable/icon_off_bookmarks"
         android:state_checked="false" />

@@ -1,26 +1,38 @@
 package ru.zerotime.translator;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.net.ConnectivityManager;
 import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.Array;
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static ru.zerotime.translator.MainActivity.TAG_ZT;
+import static ru.zerotime.translator.THistoryBookmarksProvider.APP_PATH;
 
 /**
  * Created by zeburek on 18.03.2017.
@@ -36,12 +48,15 @@ public class TTranslatorClass {
     private String langEnd = "";
 
     private THTTPProvider thttpProvider=new THTTPProvider();
-    private List<String> mainListLanguages = new ArrayList<String>();
-    Map<String, String> mainMapLanguages = new HashMap<String, String>();
+    private Map<String, String> mainMapLanguages = new HashMap<String, String>();
 
     public TTranslatorClass(){}
 
     public void getTranslate(final EditText textField, final TextView exportView){
+        if (!isInternetAvailable(textField.getContext())){
+            Toast.makeText(textField.getContext(),"Нет соединения с интернетом", Toast.LENGTH_LONG);
+            return;
+        }
         Activity act = (Activity)textField.getContext();
         act.runOnUiThread(new Runnable() {
             @Override
@@ -61,20 +76,18 @@ public class TTranslatorClass {
                     nameValuePairs.add(new BasicNameValuePair("lang","ru-en"));
                 }
 
-                thttpProvider.sendPostRequestToTranslate(translateTextFromSDKString,nameValuePairs);
-                int secs = 0;
-                while(thttpProvider.responsePostTranslate.equals("")){
-                    secs++;
-                }
-                Log.d(TAG_ZT, "Last: "+secs);
-                exportView.setText(thttpProvider.responsePostTranslate);
-                thttpProvider.responsePostTranslate = "";
+                thttpProvider.sendPostRequestToTranslate(translateTextFromSDKString,nameValuePairs, exportView);
             }
         });
 
 
     }
     public void getLangsList(final Spinner beginLangs, final Spinner endLangs, final Activity activity){
+        loadLanguageFromDiskIfAvailabled(beginLangs,endLangs,activity);
+        if (!isInternetAvailable(endLangs.getContext())){
+            Toast.makeText(endLangs.getContext(),"Нет соединения с интернетом", Toast.LENGTH_LONG);
+            return;
+        }
         Activity act = (Activity)endLangs.getContext();
         act.runOnUiThread(new Runnable() {
             @Override
@@ -119,6 +132,20 @@ public class TTranslatorClass {
 
     }
 
+    private void loadLanguageFromDiskIfAvailabled(Spinner beginLangs, Spinner endLangs, Activity activity) {
+        if (!isFileLanguageMapExists()) return;
+        loadLanguageMapFromDisk();
+        Set setOfLangs = mainMapLanguages.keySet();
+        String[] arrayOfLangs = (String[]) setOfLangs.toArray(new String[setOfLangs.size()]);
+        Arrays.sort(arrayOfLangs);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_spinner_item, arrayOfLangs);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        beginLangs.setAdapter(adapter);
+        beginLangs.setSelection(60);
+        endLangs.setAdapter(adapter);
+        endLangs.setSelection(3);
+    }
+
     public void setLangBegin(String langSelected){
         this.langBegin = checkLangNameFromList(langSelected);
     }
@@ -137,5 +164,37 @@ public class TTranslatorClass {
     public String getLangPair(){
         String pair = langBegin+"-"+langEnd;
         return pair;
+    }
+
+    public boolean isInternetAvailable(final Context context) {
+        final ConnectivityManager connectivityManager = ((ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE));
+        return connectivityManager.getActiveNetworkInfo() != null && connectivityManager.getActiveNetworkInfo().isConnected();
+    }
+
+    public void saveLanguageMapOnDisk() {
+        try {
+            FileOutputStream fileOut = new FileOutputStream(APP_PATH + "mainMapLanguages.ztr");
+            ObjectOutputStream objOut = new ObjectOutputStream(fileOut);
+            objOut.writeObject(mainMapLanguages);
+            objOut.close();
+        }catch (Exception e){
+            Log.e(TAG_ZT,e.getLocalizedMessage());
+        }
+    }
+
+    private boolean isFileLanguageMapExists(){
+        File file = new File(APP_PATH+"mainMapLanguages.ztr");
+        return file.exists();
+    }
+
+    private void loadLanguageMapFromDisk() {
+        try {
+            FileInputStream fileOut = new FileInputStream(APP_PATH+"mainMapLanguages.ztr");
+            ObjectInputStream objOut= new ObjectInputStream(fileOut);
+            mainMapLanguages = (HashMap) objOut.readObject();
+            objOut.close();
+        }catch (Exception e){
+            Log.e(TAG_ZT,"Stack:"+e.getLocalizedMessage());
+        }
     }
 }

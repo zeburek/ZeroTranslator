@@ -1,11 +1,13 @@
 package ru.zerotime.translator;
 
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.Html;
@@ -15,16 +17,15 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
-import java.net.URL;
 import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
@@ -35,8 +36,8 @@ public class MainActivity extends AppCompatActivity {
     private TTranslatorClass tTranslatorClass = new TTranslatorClass();
     private THistoryBookmarksProvider tHistoryBookmarksProvider = new THistoryBookmarksProvider();
 
-    public Button submitButton;
-    public Button replaceButton;
+    public ImageButton submitButton;
+    public ImageButton replaceButton;
     public Spinner spinnerLangBegin;
     public Spinner spinnerLangEnd;
     public ToggleButton bookmarksToggleButton;
@@ -48,6 +49,8 @@ public class MainActivity extends AppCompatActivity {
 
     private CustomAdapter historyCustomAdapter;
     private SettingsCustomAdapter settingsCustomAdapter;
+    private static CharSequence emptyOutputFieldCharSequence;
+    private static Editable emptyInputFieldEditable;
 
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
@@ -149,22 +152,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        setDrawableColor();
+
         setContentView(R.layout.activity_main);
 
         BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
         navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         layoutChanger = new TLayoutChanger(MainActivity.this);
         tHistoryBookmarksProvider.setAppPath(MainActivity.this.getApplicationInfo().dataDir);
-        tHistoryBookmarksProvider.loadAllMapsOnDisk();
+        tHistoryBookmarksProvider.loadAllMapsFromDisk();
 
-        submitButton = (Button)findViewById(R.id.id_execute);
-        replaceButton = (Button)findViewById(R.id.id_replacebutton);
-        spinnerLangBegin = (Spinner)findViewById(R.id.spinnerLangBegin);
-        spinnerLangEnd = (Spinner)findViewById(R.id.spinnerLangEnd);
-        bookmarksToggleButton = (ToggleButton)findViewById(R.id.id_adtobookmarks);
-        editText = (EditText)findViewById(R.id.inputTextField);
-        outputTextView = (TextView)findViewById(R.id.outputTextField);
-        copyRightTextView = (TextView)findViewById(R.id.copyRight);
+        setVariablesFromView();
+        emptyOutputFieldCharSequence = outputTextView.getText();
+        emptyInputFieldEditable = editText.getText();
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
             copyRightTextView.setText(Html.fromHtml("Переведено сервисом " +
                     "<a href='http://translate.yandex.ru/'>«<span style='color:red;'>Яндекс</span>.Переводчик»</a>",
@@ -181,6 +183,10 @@ public class MainActivity extends AppCompatActivity {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(tHistoryBookmarksProvider.checkIfHistoryItemExists(editText.getText().toString())){
+                    String translate = tHistoryBookmarksProvider.getHistoryTranslationByKey(editText.getText().toString());
+                    outputTextView.setText(translate);
+                }
                 tTranslatorClass.getTranslate(editText,outputTextView);
             }
         });
@@ -224,6 +230,13 @@ public class MainActivity extends AppCompatActivity {
                 if(isChecked)
                 {
                     Log.d(TAG_ZT,"Try to add bookmark");
+                    Log.d(TAG_ZT, "Output field text: ["+outputTextView.getText().toString()+"]");
+                    if (outputTextView.getText().toString() == "" ||
+                            outputTextView.getText() == emptyOutputFieldCharSequence){
+                        Log.d(TAG_ZT, "Output field is empty, wouldn't add bookmark");
+                        bookmarksToggleButton.setChecked(false);
+                        return;
+                    }
                     tHistoryBookmarksProvider.setNewBookmarksItem(editText.getText().toString());
                 }
                 else
@@ -267,6 +280,43 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG_ZT, "onPause");
+        tTranslatorClass.saveLanguageMapOnDisk();
+        tHistoryBookmarksProvider.saveAllMapsOnDisk();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG_ZT, "onDestroy");
+        tTranslatorClass.saveLanguageMapOnDisk();
+        tHistoryBookmarksProvider.saveAllMapsOnDisk();
+    }
+
+    private void setVariablesFromView() {
+        submitButton = (ImageButton)findViewById(R.id.id_execute);
+        replaceButton = (ImageButton)findViewById(R.id.id_replacebutton);
+        spinnerLangBegin = (Spinner)findViewById(R.id.spinnerLangBegin);
+        spinnerLangEnd = (Spinner)findViewById(R.id.spinnerLangEnd);
+        bookmarksToggleButton = (ToggleButton)findViewById(R.id.id_adtobookmarks);
+        editText = (EditText)findViewById(R.id.inputTextField);
+        outputTextView = (TextView)findViewById(R.id.outputTextField);
+        copyRightTextView = (TextView)findViewById(R.id.copyRight);
+    }
+
+    private void setDrawableColor() {
+        Drawable normalDrawable = getResources().getDrawable(R.drawable.icon_on_bookmarks);
+        Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
+        DrawableCompat.setTint(wrapDrawable, getResources().getColor(R.color.colorPrimary));
+
+        Drawable normalDrawable1 = getResources().getDrawable(R.drawable.icon_off_bookmarks);
+        Drawable wrapDrawable1 = DrawableCompat.wrap(normalDrawable1);
+        DrawableCompat.setTint(wrapDrawable1, getResources().getColor(R.color.colorPrimary));
     }
 
 }

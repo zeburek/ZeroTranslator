@@ -63,7 +63,7 @@ public class THTTPProvider {
                     Log.d(TAG_ZT,respText);
                     JSONObject dataJsonObj = new JSONObject(respText);
                     if (dataJsonObj.getJSONArray("text").getString(0).equals("")){
-                        responsePostTranslate = "Задан пустой запрос";
+                        responsePostTranslate = exportView.getContext().getString(R.string.response_empty);
                     } else {
                         responsePostTranslate = dataJsonObj.getJSONArray("text").getString(0);
                     }

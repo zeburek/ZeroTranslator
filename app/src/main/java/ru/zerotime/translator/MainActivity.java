@@ -1,6 +1,8 @@
 package ru.zerotime.translator;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
@@ -14,17 +16,25 @@ import android.text.Html;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.MenuItem;
+import android.view.OrientationEventListener;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.Spinner;
+import android.widget.SpinnerAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 
@@ -46,12 +56,37 @@ public class MainActivity extends AppCompatActivity {
     public TextView copyRightTextView;
     public ListView historyListView;
     public ListView settingsListView;
+    public BottomNavigationView navigation;
 
     private CustomAdapter historyCustomAdapter;
     private SettingsCustomAdapter settingsCustomAdapter;
     private static CharSequence emptyOutputFieldCharSequence;
     private static Editable emptyInputFieldEditable;
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        int id = navigation.getSelectedItemId();
+        SpinnerAdapter adapter = spinnerLangBegin.getAdapter();
+        int beginId = spinnerLangBegin.getSelectedItemPosition();
+        int endId = spinnerLangEnd.getSelectedItemPosition();
+        Editable input = editText.getText();
+        CharSequence output = outputTextView.getText();
+
+        ((LinearLayout)findViewById(R.id.container)).removeAllViews();
+
+        super.onConfigurationChanged(newConfig);
+        initUI();
+
+        spinnerLangBegin.setAdapter(adapter);
+        spinnerLangEnd.setAdapter(adapter);
+        spinnerLangBegin.setSelection(beginId);
+        spinnerLangEnd.setSelection(endId);
+        editText.setText(input);
+        outputTextView.setText(output);
+
+        Log.d(TAG_ZT, "Config changed.");
+        navigation.setSelectedItemId(id);
+    }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemSelectedListener
             = new BottomNavigationView.OnNavigationItemSelectedListener() {
@@ -82,18 +117,18 @@ public class MainActivity extends AppCompatActivity {
         ArrayList<TSettingsListItem> settingsArrayList = new ArrayList<TSettingsListItem>();
         int count = tHistoryBookmarksProvider.getHistoryLength()-1;
         TSettingsListItem clearHistoryListItem = new TSettingsListItem();
-        clearHistoryListItem.setMainText("Очистить историю");
-        clearHistoryListItem.setDescText("Все записи будут удалены из истории");
+        clearHistoryListItem.setMainText(getString(R.string.settings_clear_history));
+        clearHistoryListItem.setDescText(getString(R.string.settings_clear_history_desc));
         settingsArrayList.add(clearHistoryListItem);
 
         TSettingsListItem clearAllListItem = new TSettingsListItem();
-        clearAllListItem.setMainText("Очистить все данные");
-        clearAllListItem.setDescText("Будут очищены история и закладки");
+        clearAllListItem.setMainText(getString(R.string.settings_clear_all));
+        clearAllListItem.setDescText(getString(R.string.settings_clear_all_desc));
         settingsArrayList.add(clearAllListItem);
 
         TSettingsListItem aboutListItem = new TSettingsListItem();
-        aboutListItem.setMainText("О программе");
-        aboutListItem.setDescText("Zero.Translator, Версия: "+BuildConfig.VERSION_NAME);
+        aboutListItem.setMainText(getString(R.string.settings_about));
+        aboutListItem.setDescText(getString(R.string.settings_about_desc)+BuildConfig.VERSION_NAME+"."+BuildConfig.VERSION_CODE);
         settingsArrayList.add(aboutListItem);
 
         settingsCustomAdapter = new SettingsCustomAdapter(this,settingsArrayList);
@@ -110,14 +145,18 @@ public class MainActivity extends AppCompatActivity {
                         editText.setText("");
                         outputTextView.setText("");
                         bookmarksToggleButton.setChecked(false);
-                        Toast.makeText(getApplicationContext(), "История очищена", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(),
+                                getString(R.string.settings_toast_historycleared),
+                                Toast.LENGTH_SHORT).show();
                         break;
                     case 1:
                         tHistoryBookmarksProvider.clearAllData();
                         editText.setText("");
                         outputTextView.setText("");
                         bookmarksToggleButton.setChecked(false);
-                        Toast.makeText(getApplicationContext(), "Данные очищены", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getApplicationContext(),
+                                getString(R.string.settings_toast_allcleared),
+                                Toast.LENGTH_SHORT).show();
                         break;
                     case 2:
                         Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://parviz.pw"));
@@ -147,18 +186,33 @@ public class MainActivity extends AppCompatActivity {
         }
         historyCustomAdapter = new CustomAdapter(this, historyArrayList);
         historyListView.setAdapter(historyCustomAdapter);
+        historyListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                TextView beginTextView = (TextView) view.findViewById(R.id.mainNameView);
+                CharSequence beginText = beginTextView.getText();
+
+                navigation.setSelectedItemId(R.id.navigation_translator);
+
+                editText.setText(beginText);
+                submitButton.performClick();
+            }
+        });
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        initUI();
+        tTranslatorClass.getLangsList(spinnerLangBegin,spinnerLangEnd,MainActivity.this);
+    }
+
+    private void initUI() {
         setDrawableColor();
 
         setContentView(R.layout.activity_main);
 
-        BottomNavigationView navigation = (BottomNavigationView) findViewById(R.id.navigation);
-        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
         layoutChanger = new TLayoutChanger(MainActivity.this);
         tHistoryBookmarksProvider.setAppPath(MainActivity.this.getApplicationInfo().dataDir);
         tHistoryBookmarksProvider.loadAllMapsFromDisk();
@@ -168,26 +222,63 @@ public class MainActivity extends AppCompatActivity {
         emptyInputFieldEditable = editText.getText();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            copyRightTextView.setText(Html.fromHtml("Переведено сервисом " +
-                    "<a href='http://translate.yandex.ru/'>«<span style='color:red;'>Яндекс</span>.Переводчик»</a>",
+            copyRightTextView.setText(Html.fromHtml(getString(R.string.copyright_text),
                     Html.FROM_HTML_MODE_COMPACT));
         } else {
-            copyRightTextView.setText(Html.fromHtml("Переведено сервисом " +
-                    "<a href='http://translate.yandex.ru/'>«<span style='color:red;'>Яндекс</span>.Переводчик»</a>"));
+            copyRightTextView.setText(Html.fromHtml(getString(R.string.copyright_text)));
         }
         copyRightTextView.setClickable(true);
         copyRightTextView.setMovementMethod(LinkMovementMethod.getInstance());
 
-        tTranslatorClass.getLangsList(spinnerLangBegin,spinnerLangEnd,MainActivity.this);
+        initAllListeners();
+    }
 
+
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG_ZT, "onPause");
+        tTranslatorClass.saveLanguageMapOnDisk();
+        tHistoryBookmarksProvider.saveAllMapsOnDisk();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG_ZT, "onDestroy");
+        tTranslatorClass.saveLanguageMapOnDisk();
+        tHistoryBookmarksProvider.saveAllMapsOnDisk();
+    }
+
+    private void setVariablesFromView() {
+        navigation = (BottomNavigationView) findViewById(R.id.navigation);
+        navigation.setOnNavigationItemSelectedListener(mOnNavigationItemSelectedListener);
+        submitButton = (ImageButton)findViewById(R.id.id_execute);
+        replaceButton = (ImageButton)findViewById(R.id.id_replacebutton);
+        spinnerLangBegin = (Spinner)findViewById(R.id.spinnerLangBegin);
+        spinnerLangEnd = (Spinner)findViewById(R.id.spinnerLangEnd);
+        bookmarksToggleButton = (ToggleButton)findViewById(R.id.id_adtobookmarks);
+        editText = (EditText)findViewById(R.id.inputTextField);
+        outputTextView = (TextView)findViewById(R.id.outputTextField);
+        copyRightTextView = (TextView)findViewById(R.id.copyRight);
+    }
+
+    private void setDrawableColor() {
+        Drawable normalDrawable = getResources().getDrawable(R.drawable.icon_on_bookmarks);
+        Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
+        DrawableCompat.setTint(wrapDrawable, getResources().getColor(R.color.colorPrimary));
+
+        Drawable normalDrawable1 = getResources().getDrawable(R.drawable.icon_off_bookmarks);
+        Drawable wrapDrawable1 = DrawableCompat.wrap(normalDrawable1);
+        DrawableCompat.setTint(wrapDrawable1, getResources().getColor(R.color.colorPrimary));
+    }
+
+    private void initAllListeners() {
         submitButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(tHistoryBookmarksProvider.checkIfHistoryItemExists(editText.getText().toString())){
-                    String translate = tHistoryBookmarksProvider.getHistoryTranslationByKey(editText.getText().toString());
-                    outputTextView.setText(translate);
-                }
-                tTranslatorClass.getTranslate(editText,outputTextView);
+                getTranslate();
             }
         });
         spinnerLangBegin.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -264,6 +355,16 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+        outputTextView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View view = MainActivity.this.getCurrentFocus();
+                if (view != null) {
+                    InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+                }
+            }
+        });
 
         editText.addTextChangedListener(new TextWatcher() {
             @Override
@@ -282,41 +383,11 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-        Log.d(TAG_ZT, "onPause");
-        tTranslatorClass.saveLanguageMapOnDisk();
-        tHistoryBookmarksProvider.saveAllMapsOnDisk();
+    private void getTranslate() {
+        if(tHistoryBookmarksProvider.checkIfHistoryItemExists(editText.getText().toString())){
+            String translate = tHistoryBookmarksProvider.getHistoryTranslationByKey(editText.getText().toString());
+            outputTextView.setText(translate);
+        }
+        tTranslatorClass.getTranslate(editText,outputTextView);
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        Log.d(TAG_ZT, "onDestroy");
-        tTranslatorClass.saveLanguageMapOnDisk();
-        tHistoryBookmarksProvider.saveAllMapsOnDisk();
-    }
-
-    private void setVariablesFromView() {
-        submitButton = (ImageButton)findViewById(R.id.id_execute);
-        replaceButton = (ImageButton)findViewById(R.id.id_replacebutton);
-        spinnerLangBegin = (Spinner)findViewById(R.id.spinnerLangBegin);
-        spinnerLangEnd = (Spinner)findViewById(R.id.spinnerLangEnd);
-        bookmarksToggleButton = (ToggleButton)findViewById(R.id.id_adtobookmarks);
-        editText = (EditText)findViewById(R.id.inputTextField);
-        outputTextView = (TextView)findViewById(R.id.outputTextField);
-        copyRightTextView = (TextView)findViewById(R.id.copyRight);
-    }
-
-    private void setDrawableColor() {
-        Drawable normalDrawable = getResources().getDrawable(R.drawable.icon_on_bookmarks);
-        Drawable wrapDrawable = DrawableCompat.wrap(normalDrawable);
-        DrawableCompat.setTint(wrapDrawable, getResources().getColor(R.color.colorPrimary));
-
-        Drawable normalDrawable1 = getResources().getDrawable(R.drawable.icon_off_bookmarks);
-        Drawable wrapDrawable1 = DrawableCompat.wrap(normalDrawable1);
-        DrawableCompat.setTint(wrapDrawable1, getResources().getColor(R.color.colorPrimary));
-    }
-
 }

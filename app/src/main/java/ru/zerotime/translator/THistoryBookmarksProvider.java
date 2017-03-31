@@ -21,9 +21,9 @@ import static ru.zerotime.translator.MainActivity.TAG_ZT;
 
 public class THistoryBookmarksProvider {
 
-    public static Map<String,Boolean> mainBookmarksMap = new HashMap<String,Boolean>();
-    public static Map<String,String> mainHistoryTransMap = new LinkedHashMap<String,String>();
-    public static Map<String,String> mainHistoryLangPairMap = new HashMap<String,String>();
+    public Map<String,Boolean> mainBookmarksMap = new HashMap<String,Boolean>();
+    public Map<String,String> mainHistoryTransMap = new LinkedHashMap<String,String>();
+    public Map<String,String> mainHistoryLangPairMap = new HashMap<String,String>();
     public static String APP_PATH;
 
     public THistoryBookmarksProvider(){}

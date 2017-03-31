@@ -1,6 +1,19 @@
 <resources>
-    <string name="app_name">Translator</string>
-    <string name="title_home">Перевод</string>
-    <string name="title_history">История</string>
-    <string name="title_settings">Настройки</string>
+    <string name="app_name">Zero.Translator</string>
+    <string name="title_home">Translation</string>
+    <string name="title_history">History</string>
+    <string name="title_settings">Settings</string>
+    <string name="settings_clear_history">Clear history</string>
+    <string name="settings_clear_history_desc">All history items will be erased</string>
+    <string name="settings_clear_all">Clear all data</string>
+    <string name="settings_about">About</string>
+    <string name="settings_about_desc">"Zero.Translator, Ver: "</string>
+    <string name="settings_toast_historycleared">History cleared</string>
+    <string name="settings_toast_allcleared">All data cleared</string>
+    <string name="copyright_text"><![CDATA[Translated with <a href=\'http://translate.yandex.ru/\'>
+        «<span style=\'color:red;\'>Yandex</span>.Translator»</a>]]></string>
+    <string name="response_empty">Empty response</string>
+    <string name="response_no_internet">No internet connection</string>
+    <string name="settings_clear_all_desc">History and bookmarks will be erased</string>
+
 </resources>

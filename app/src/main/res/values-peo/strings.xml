@@ -1,2 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources><string name="copyright_text"><![CDATA[Translated with <a href=\'http://translate.yandex.ru/\'>
+        «<span style=\'color:red;\'>Yandex</span>.Translator»</a>]]></string>
+    <string name="response_empty">پاسخ خالی</string>
+    <string name="response_no_internet">بدون اتصال به اینترنت</string>
+    <string name="settings_about">درباره برنامه</string>
+    <string name="settings_about_desc">\"Zero.Translator, نسخه: \"</string>
+    <string name="settings_clear_all">پاک کردن همه اطلاعات</string>
+    <string name="settings_clear_all_desc">تاریخچه و بوک مارک پاک خواهد شد</string>
+    <string name="settings_clear_history">پاک کردن تاریخچه</string>
+    <string name="settings_clear_history_desc">همه موارد سابقه پاک خواهد شد</string>
+    <string name="settings_toast_allcleared">همه داده های پاک</string>
+    <string name="settings_toast_historycleared">تاریخچه پاک</string>
+    <string name="title_history">تاریخ</string>
+    <string name="title_home">ترجمه</string>
+    <string name="title_settings">تنظیمات</string>
+</resources>

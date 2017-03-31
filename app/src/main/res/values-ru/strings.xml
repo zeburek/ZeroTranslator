@@ -1,2 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources></resources>
+<resources>
+    <string name="app_name">Zero.Переводчик</string>
+    <string name="copyright_text"><![CDATA[Переведено сервисом <a href=\'http://translate.yandex.ru/\'>
+        «<span style=\'color:red;\'>Яндекс</span>.Переводчик»</a>]]></string>
+    <string name="response_empty">Задан пустой запрос</string>
+    <string name="response_no_internet">Нет соединения с интернетом</string>
+    <string name="settings_about">О программе</string>
+    <string name="settings_about_desc">"Zero.Translator, Версия: "</string>
+    <string name="settings_clear_all">Очистить все данные</string>
+    <string name="settings_clear_all_desc">Будут очищены история и закладки</string>
+    <string name="settings_clear_history">Очистить историю</string>
+    <string name="settings_clear_history_desc">Все записи будут удалены из истории</string>
+    <string name="settings_toast_allcleared">Все данные очищена</string>
+    <string name="settings_toast_historycleared">История очищена</string>
+    <string name="title_history">История</string>
+    <string name="title_home">Перевод</string>
+    <string name="title_settings">Настройки</string>
+</resources>

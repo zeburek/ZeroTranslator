@@ -4,17 +4,12 @@ import android.app.Activity;
 import android.util.Log;
 import android.widget.TextView;
 
-import org.apache.http.HttpVersion;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.HttpParams;
-import org.apache.http.params.HttpProtocolParams;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xmlpull.v1.XmlPullParser;
@@ -26,7 +21,6 @@ import java.io.StringReader;
 import java.security.GeneralSecurityException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -46,14 +40,21 @@ public class THTTPProvider {
     private String responsePostLangs;
     public XmlPullParser langListXML = null;
 
+    private Thread sendPostRequestToTranslateThread;
+    private Thread sendPostRequestToGetLangListThread;
+
 
     public THTTPProvider(){}
 
-    public void sendPostRequestToTranslate(String url, final List<BasicNameValuePair> queryParams, final TextView exportView){
+    public void sendPostRequestToTranslate(String url,
+                                           final List<BasicNameValuePair> queryParams,
+                                           final TextView exportView){
+        if(sendPostRequestToTranslateThread.isAlive()){
+            sendPostRequestToTranslateThread.interrupt();}
         final HttpClient httpclient = new DefaultHttpClient();
         final HttpPost http = new HttpPost(url);
 
-        Thread t = new Thread(new Runnable() {
+        sendPostRequestToTranslateThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -75,7 +76,7 @@ public class THTTPProvider {
                 }
             }
         });
-        t.start();
+        sendPostRequestToTranslateThread.start();
     }
 
     private void setNewTranslateToOutput(final TextView exportView) {
@@ -88,12 +89,15 @@ public class THTTPProvider {
         });
     }
 
-    public void sendPostRequestToGetLangList(String url, final List<BasicNameValuePair> queryParams){
+    public void sendPostRequestToGetLangList(String url,
+                                             final List<BasicNameValuePair> queryParams){
+        if(sendPostRequestToGetLangListThread.isAlive()){
+            sendPostRequestToGetLangListThread.interrupt();}
         XmlPullParser respXML = null;
         final HttpClient httpclient = new DefaultHttpClient();
         final HttpPost http = new HttpPost(url);
 
-        Thread t = new Thread(new Runnable() {
+        sendPostRequestToGetLangListThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -109,7 +113,7 @@ public class THTTPProvider {
                 }
             }
         });
-        t.start();
+        sendPostRequestToGetLangListThread.start();
     }
 
     static {

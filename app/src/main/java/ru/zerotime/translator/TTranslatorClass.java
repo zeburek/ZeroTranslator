@@ -54,7 +54,9 @@ public class TTranslatorClass {
 
     private THTTPProvider thttpProvider=new THTTPProvider();
     private Map<String, String> mainMapLanguages = new HashMap<String, String>();
-    private Map<String, String> subMapLanguages;
+    private Thread getLangListThread;
+    private Thread getTranslateThread;
+
 
     public TTranslatorClass(){}
 
@@ -63,14 +65,14 @@ public class TTranslatorClass {
     }
 
     public void getTranslate(final EditText textField, final TextView exportView){
+        if(getTranslateThread.isAlive()){getTranslateThread.interrupt();}
         if (!isInternetAvailable(textField.getContext())){
             Toast.makeText(textField.getContext(),
                     exportView.getContext().getString(R.string.response_no_internet),
-                    Toast.LENGTH_LONG);
+                    Toast.LENGTH_LONG).show();
             return;
         }
-        Activity act = (Activity)textField.getContext();
-        act.runOnUiThread(new Runnable() {
+        getTranslateThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 String textFromField = textField.getText().toString();
@@ -93,21 +95,22 @@ public class TTranslatorClass {
                         exportView);
             }
         });
-
+        getTranslateThread.start();
 
     }
     public void getLangsList(final Spinner beginLangs,
                              final Spinner endLangs,
                              final Activity activity){
+        if(getLangListThread.isAlive()){getLangListThread.interrupt();}
         Log.d(TAG_ZT, "System lang: " + Locale.getDefault().getLanguage());
         loadLanguageFromDiskIfAvailabled(beginLangs,endLangs,activity);
         if (!isInternetAvailable(endLangs.getContext())){
             Toast.makeText(endLangs.getContext(),
                     beginLangs.getContext().getString(R.string.response_no_internet),
-                    Toast.LENGTH_LONG);
+                    Toast.LENGTH_LONG).show();
             return;
         }
-        new Thread(new Runnable() {
+        getLangListThread = new Thread(new Runnable() {
             @Override
             public void run() {
                 List<BasicNameValuePair> nameValuePairs = new ArrayList<>(2);
@@ -147,13 +150,8 @@ public class TTranslatorClass {
                 adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 setLangListToUI(adapter, beginLangs, endLangs);
             }
-        }).start();
-
-
-
-
-
-
+        });
+        getLangListThread.start();
     }
 
     private void setLangListToUI(final ArrayAdapter<String> adapter,
@@ -202,8 +200,7 @@ public class TTranslatorClass {
     }
 
     public String getLangPair(){
-        String pair = langBegin+"-"+langEnd;
-        return pair;
+        return langBegin+"-"+langEnd;
     }
 
     public boolean isInternetAvailable(final Context context) {

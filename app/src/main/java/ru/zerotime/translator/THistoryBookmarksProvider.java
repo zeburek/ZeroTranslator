@@ -3,7 +3,6 @@ package ru.zerotime.translator;
 import android.util.Log;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -17,6 +16,8 @@ import static ru.zerotime.translator.MainActivity.TAG_ZT;
 
 /**
  * Created by zeburek on 19.03.2017.
+ * Class to work with history and bookmarks.
+ * Pretty easy, so I think there is no need a comments.
  */
 
 public class THistoryBookmarksProvider {
@@ -57,7 +58,6 @@ public class THistoryBookmarksProvider {
     public String getHistoryKeyById(int id){
         Set<String> keysSet = mainHistoryTransMap.keySet();
         String keyName = keysSet.toArray()[id].toString();
-        Log.d(TAG_ZT, "KeyName: "+keyName);
         return  keyName;
     }
 
@@ -69,7 +69,7 @@ public class THistoryBookmarksProvider {
         return mainHistoryLangPairMap.get(key);
     }
 
-    public Boolean getBookmarkIfExistByKey(String key){
+    public Boolean isBookmarkWithThisKeyExists(String key){
         boolean contains = mainBookmarksMap.containsKey(key);
         if(contains){
             return mainBookmarksMap.get(key);
@@ -117,7 +117,7 @@ public class THistoryBookmarksProvider {
         int toDelete = 0;
         Map<Integer,String> saveToDelete = new HashMap<>();
         for(int i = 0; i <= count; i++){
-            boolean b = getBookmarkIfExistByKey(getHistoryKeyById(i));
+            boolean b = isBookmarkWithThisKeyExists(getHistoryKeyById(i));
             if(b){} else {
                 saveToDelete.put(toDelete,getHistoryKeyById(i));
                 toDelete++;

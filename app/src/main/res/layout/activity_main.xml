@@ -24,7 +24,18 @@
             android:id="@+id/id_settings"
             android:visibility="gone"/>
 
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/bookmarks_or_history_fab"
+            android:layout_width="116dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="8dp"
+            android:tint="#fff"
+            app:srcCompat="@drawable/icon_off_bookmarks"
+            android:visibility="gone"/>
+
     </FrameLayout>
+
 
     <android.support.design.widget.BottomNavigationView
         android:id="@+id/navigation"

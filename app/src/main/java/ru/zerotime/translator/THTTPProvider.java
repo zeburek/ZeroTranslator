@@ -82,7 +82,7 @@ public class THTTPProvider {
 
     /*Method to set translatex text to View.
     * Anable to use it in additional Thread, that's why used runOnUiThread*/
-    private void setNewTranslateToOutput(final TextView exportView) {
+    public void setNewTranslateToOutput(final TextView exportView) {
         Activity act = (Activity) exportView.getContext();
         act.runOnUiThread(new Runnable() {
             @Override

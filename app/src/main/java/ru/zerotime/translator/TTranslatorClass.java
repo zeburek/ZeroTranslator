@@ -48,8 +48,8 @@ public class TTranslatorClass {
             "https://translate.yandex.net/api/v1.5/tr.json/detect";
     private static String translateTextFromSDKString =
             "https://translate.yandex.net/api/v1.5/tr.json/translate";
-    private String langBegin = "";
-    private String langEnd = "";
+    public String langBegin = "";
+    public String langEnd = "";
 
     /*Different variable declaration*/
     private THTTPProvider thttpProvider=new THTTPProvider();
@@ -85,8 +85,6 @@ public class TTranslatorClass {
                 List<BasicNameValuePair> nameValuePairs = new ArrayList<>(2);
                 nameValuePairs.add(new BasicNameValuePair("key", appIdForSDKString));
                 nameValuePairs.add(new BasicNameValuePair("text", textFromField));
-                /*A simple check, if something is not selected
-                * in case not to send empty values*/
                 nameValuePairs.add(new BasicNameValuePair("lang",getLangPair()));
 
                 /*Send request to THTTPProvider*/
@@ -166,7 +164,7 @@ public class TTranslatorClass {
             @Override
             public void run() {
                 beginLangs.setAdapter(adapter);
-                beginLangs.setSelection(60);
+                beginLangs.setSelection(63);
                 endLangs.setAdapter(adapter);
                 endLangs.setSelection(3);
             }

@@ -14,4 +14,5 @@
     <string name="title_history">تاریخ</string>
     <string name="title_home">ترجمه</string>
     <string name="title_settings">تنظیمات</string>
+    <string name="history_only_bookmarks">Only bookmarks</string>
 </resources>

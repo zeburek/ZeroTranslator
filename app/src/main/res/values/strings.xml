@@ -15,5 +15,6 @@
     <string name="response_empty">Empty response</string>
     <string name="response_no_internet">No internet connection</string>
     <string name="settings_clear_all_desc">History and bookmarks will be erased</string>
+    <string name="history_only_bookmarks">Only bookmarks</string>
 
 </resources>

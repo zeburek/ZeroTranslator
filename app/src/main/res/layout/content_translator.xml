@@ -14,45 +14,44 @@
         android:layout_height="150dp"
         android:ems="10"
         android:inputType="textMultiLine"
-        android:layout_marginRight="8dp"
-        app:layout_constraintRight_toRightOf="parent"
         android:layout_marginLeft="8dp"
         app:layout_constraintLeft_toLeftOf="parent"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        app:layout_constraintHorizontal_bias="0.0"
         android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/id_replacebutton" />
+        app:layout_constraintTop_toBottomOf="@+id/id_replacebutton"
+        app:layout_constraintRight_toLeftOf="@+id/id_execute"
+        android:layout_marginRight="8dp" />
 
     <ToggleButton
         android:id="@+id/id_adtobookmarks"
         android:layout_width="25dp"
         android:layout_height="25dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginRight="8dp"
-        android:layout_marginTop="8dp"
         style="@style/toggleButton"
         android:background="@drawable/icon_bookmarks_bg"
         android:backgroundTint="@color/colorPrimary"
-        app:layout_constraintRight_toRightOf="@+id/inputTextField"
+        android:drawablePadding="0dp"
+        android:layout_marginRight="-2dp"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toTopOf="@+id/id_execute"
         app:layout_constraintTop_toTopOf="@+id/inputTextField"
-        android:drawablePadding="0dp"/>
+        android:layout_marginTop="8dp"
+        app:layout_constraintVertical_bias="0.0" />
 
     <ImageButton
         android:id="@+id/id_execute"
         android:layout_width="25dp"
         android:layout_height="25dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginRight="8dp"
         android:background="@android:color/transparent"
         android:text=""
         app:srcCompat = "@drawable/icon_exec"
         android:tint="@color/colorPrimary"
+        android:layout_marginRight="8dp"
+        app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toBottomOf="@+id/inputTextField"
-        app:layout_constraintRight_toRightOf="@+id/inputTextField"
-        android:layout_marginTop="8dp"
-        app:layout_constraintTop_toBottomOf="@+id/id_adtobookmarks"
-        app:layout_constraintVertical_bias="1.0" />
+        android:layout_marginBottom="8dp" />
 
     <TextView
         android:id="@+id/outputTextField"
@@ -65,11 +64,12 @@
         android:layout_marginStart="8dp"
         android:text=""
         android:textSize="17sp"
+        android:scrollbars = "vertical"
+        android:layout_marginTop="8dp"
         app:layout_constraintBottom_toTopOf="@+id/copyRight"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@+id/inputTextField" />
 
     <Spinner

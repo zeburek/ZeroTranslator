@@ -9,12 +9,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.BottomNavigationView;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.Html;
 import android.text.TextWatcher;
 import android.text.method.LinkMovementMethod;
+import android.text.method.ScrollingMovementMethod;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -54,12 +56,14 @@ public class MainActivity extends AppCompatActivity {
     public TextView copyRightTextView;
     public ListView historyListView;
     public ListView settingsListView;
+    public FloatingActionButton bookmarksOrHistoryFab;
     public BottomNavigationView navigation;
 
     private HistoryCustomAdapter historyHistoryCustomAdapter;
     private SettingsCustomAdapter settingsCustomAdapter;
     private static CharSequence emptyOutputFieldCharSequence;
     private static Editable emptyInputFieldEditable;
+    public boolean onlyBookmarksIsChecked = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,14 +219,18 @@ public class MainActivity extends AppCompatActivity {
             String name = tHistoryBookmarksProvider.getHistoryKeyById(i);
             String translate = tHistoryBookmarksProvider.getHistoryTranslationByKey(name);
             String pair = tHistoryBookmarksProvider.getHistoryLangPairByKey(name);
-            boolean isBook = tHistoryBookmarksProvider.getBookmarkIfExistByKey(name);
-            THistoryListItem listItem = new THistoryListItem();
-            listItem.setMainText(name);
-            listItem.setTranslatedText(translate);
-            listItem.setLangPair(pair.toUpperCase());
-            listItem.setIsBookmark(isBook);
+            boolean isBook = tHistoryBookmarksProvider.isBookmarkWithThisKeyExists(name);
 
-            historyArrayList.add(listItem);
+            /*Check if we need to show only bookmarks or not.*/
+            if(onlyBookmarksIsChecked){
+                if(isBook){
+                    THistoryListItem listItem = gettHistoryListItem(name, translate, pair, isBook);
+                    historyArrayList.add(listItem);
+                }
+            } else {
+                THistoryListItem listItem = gettHistoryListItem(name, translate, pair, isBook);
+                historyArrayList.add(listItem);
+            }
         }
         /*Set ArrayList to Adapter and add it to ListView
         * Also added listener*/
@@ -244,6 +252,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    @NonNull
+    private THistoryListItem gettHistoryListItem(String name, String translate, String pair, boolean isBook) {
+        THistoryListItem listItem = new THistoryListItem();
+        listItem.setMainText(name);
+        listItem.setTranslatedText(translate);
+        listItem.setLangPair(pair.toUpperCase());
+        listItem.setIsBookmark(isBook);
+        return listItem;
+    }
+
     /*Class to init main application elements, that need to be known onStart*/
     private void initApplicationElements() {
         setDrawableColor();
@@ -256,8 +274,9 @@ public class MainActivity extends AppCompatActivity {
 
         setVariablesFromView();
         /*Need to know the Text from empty input and output fields*/
-        emptyOutputFieldCharSequence = outputTextView.getText();
         emptyInputFieldEditable = inputEditText.getText();
+        emptyOutputFieldCharSequence = outputTextView.getText();
+        outputTextView.setMovementMethod(new ScrollingMovementMethod());
 
         /*Setting a HTML code to copyright TextView and set it clickable*/
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
@@ -283,6 +302,7 @@ public class MainActivity extends AppCompatActivity {
         inputEditText = (EditText)findViewById(R.id.inputTextField);
         outputTextView = (TextView)findViewById(R.id.outputTextField);
         copyRightTextView = (TextView)findViewById(R.id.copyRight);
+        bookmarksOrHistoryFab = (FloatingActionButton)findViewById(R.id.bookmarks_or_history_fab);
     }
 
     /*Method to add Tint to drawable on a ToggleButton.
@@ -395,17 +415,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                getTranslate();
-            }
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
 
             @Override
             public void afterTextChanged(Editable s) {
                 bookmarksToggleButton.setChecked(false);
                 if(tHistoryBookmarksProvider
-                        .getBookmarkIfExistByKey(inputEditText.getText().toString())){
+                        .isBookmarkWithThisKeyExists(inputEditText.getText().toString())){
                     bookmarksToggleButton.setChecked(true);
                 }
+            }
+        });
+
+        bookmarksOrHistoryFab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!onlyBookmarksIsChecked){
+                    bookmarksOrHistoryFab.setImageResource(R.drawable.icon_on_bookmarks);
+                    onlyBookmarksIsChecked = true;
+                } else {
+                    bookmarksOrHistoryFab.setImageResource(R.drawable.icon_off_bookmarks);
+                    onlyBookmarksIsChecked = false;
+                }
+                navigation.setSelectedItemId(R.id.navigation_history);
             }
         });
     }

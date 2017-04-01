@@ -1,13 +1,8 @@
 package ru.zerotime.translator;
 
-import android.util.Log;
-
 import org.junit.Test;
 
-import java.io.File;
-
 import static org.junit.Assert.assertEquals;
-import static ru.zerotime.translator.MainActivity.TAG_ZT;
 
 /**
  * Created by zeburek on 25.03.2017.
@@ -55,7 +50,7 @@ public class THistoryBookmarksProviderTest {
         prov.setNewHistoryItem("test","тест","en-ru");
         prov.setNewBookmarksItem("test");
 
-        boolean bookmark = prov.getBookmarkIfExistByKey("test");
+        boolean bookmark = prov.isBookmarkWithThisKeyExists("test");
 
         assertEquals(true,bookmark);
     }
@@ -67,7 +62,7 @@ public class THistoryBookmarksProviderTest {
         prov.setNewBookmarksItem("test");
         prov.setNewBookmarksItem("test");
 
-        boolean bookmark = prov.getBookmarkIfExistByKey("test");
+        boolean bookmark = prov.isBookmarkWithThisKeyExists("test");
 
         assertEquals(true,bookmark);
     }
@@ -79,7 +74,7 @@ public class THistoryBookmarksProviderTest {
         prov.setNewBookmarksItem("test");
         prov.removeBookmarksItem("test");
 
-        boolean bookmark = prov.getBookmarkIfExistByKey("test");
+        boolean bookmark = prov.isBookmarkWithThisKeyExists("test");
 
         assertEquals(false,bookmark);
     }
@@ -130,7 +125,7 @@ public class THistoryBookmarksProviderTest {
         prov.setNewHistoryItem("test","тест","en-ru");
         prov.setNewBookmarksItem("test");
 
-        boolean exist = prov.getBookmarkIfExistByKey("test");
+        boolean exist = prov.isBookmarkWithThisKeyExists("test");
 
         assertEquals(true,exist);
     }

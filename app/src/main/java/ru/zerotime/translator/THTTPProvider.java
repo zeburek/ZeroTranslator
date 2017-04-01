@@ -32,14 +32,16 @@ import static ru.zerotime.translator.MainActivity.TAG_ZT;
 
 /**
  * Created by zeburek on 18.03.2017.
+ * Method that works with network.
+ * No one else need to know, how to connect
  */
 
 public class THTTPProvider {
     /*Strings declaration*/
     public String responsePostTranslate = "";
     private String responsePostLangs;
-    public XmlPullParser langListXML = null;
 
+    public XmlPullParser langListXML = null;
     private Thread sendPostRequestToTranslateThread;
     private Thread sendPostRequestToGetLangListThread;
 
@@ -49,8 +51,7 @@ public class THTTPProvider {
     public void sendPostRequestToTranslate(String url,
                                            final List<BasicNameValuePair> queryParams,
                                            final TextView exportView){
-        if(sendPostRequestToTranslateThread.isAlive()){
-            sendPostRequestToTranslateThread.interrupt();}
+        sendPostRequestToTranslateThread = null;
         final HttpClient httpclient = new DefaultHttpClient();
         final HttpPost http = new HttpPost(url);
 
@@ -59,7 +60,7 @@ public class THTTPProvider {
             public void run() {
                 try {
                     http.setEntity(new UrlEncodedFormEntity(queryParams,"UTF-8"));
-                    //получаем ответ от сервера
+                    //Getting answer from server
                     String respText = httpclient.execute(http, new BasicResponseHandler());
                     Log.d(TAG_ZT,respText);
                     JSONObject dataJsonObj = new JSONObject(respText);
@@ -79,6 +80,8 @@ public class THTTPProvider {
         sendPostRequestToTranslateThread.start();
     }
 
+    /*Method to set translatex text to View.
+    * Anable to use it in additional Thread, that's why used runOnUiThread*/
     private void setNewTranslateToOutput(final TextView exportView) {
         Activity act = (Activity) exportView.getContext();
         act.runOnUiThread(new Runnable() {
@@ -91,9 +94,7 @@ public class THTTPProvider {
 
     public void sendPostRequestToGetLangList(String url,
                                              final List<BasicNameValuePair> queryParams){
-        if(sendPostRequestToGetLangListThread.isAlive()){
-            sendPostRequestToGetLangListThread.interrupt();}
-        XmlPullParser respXML = null;
+        sendPostRequestToGetLangListThread = null;
         final HttpClient httpclient = new DefaultHttpClient();
         final HttpPost http = new HttpPost(url);
 
@@ -102,7 +103,7 @@ public class THTTPProvider {
             public void run() {
                 try {
                     http.setEntity(new UrlEncodedFormEntity(queryParams,"UTF-8"));
-                    //получаем ответ от сервера
+                    //Getting answer from server
                     responsePostLangs = httpclient.execute(http, new BasicResponseHandler());
                     Log.d(TAG_ZT,responsePostLangs);
                     parseXML(responsePostLangs);
@@ -116,6 +117,7 @@ public class THTTPProvider {
         sendPostRequestToGetLangListThread.start();
     }
 
+    /*Solving problems with SSL certificates*/
     static {
         final TrustManager[] trustAllCertificates = new TrustManager[] {
                 new X509TrustManager() {
@@ -143,6 +145,7 @@ public class THTTPProvider {
         }
     }
 
+    /*Parsing XML*/
     private void parseXML(String strXML) throws XmlPullParserException {
         XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
         factory.setNamespaceAware(true);

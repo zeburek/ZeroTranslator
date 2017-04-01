@@ -14,15 +14,12 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-/**
- * Created by prats on 5/28/2015.
- */
-public class CustomAdapter extends BaseAdapter {
+public class HistoryCustomAdapter extends BaseAdapter {
 
     private Context context;
-    private ArrayList<TListItem> arrayList;
+    private ArrayList<THistoryListItem> arrayList;
 
-    public CustomAdapter(Context context,ArrayList<TListItem> arrayList)
+    public HistoryCustomAdapter(Context context, ArrayList<THistoryListItem> arrayList)
     {
         this.context = context;
         this.arrayList = arrayList;
@@ -43,6 +40,7 @@ public class CustomAdapter extends BaseAdapter {
         return position;
     }
 
+    /*Setting my own view of Item in History ListView*/
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
@@ -51,7 +49,7 @@ public class CustomAdapter extends BaseAdapter {
                     (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = vi.inflate(R.layout.custom_row, null);
         }
-        final TListItem listItem = arrayList.get(position);
+        final THistoryListItem listItem = arrayList.get(position);
         if (listItem != null)
             ((TextView) convertView.findViewById(R.id.mainNameView)).setText(listItem.getMainText());
             ((TextView) convertView.findViewById(R.id.translatedNameView)).setText(listItem.getTranslateText());

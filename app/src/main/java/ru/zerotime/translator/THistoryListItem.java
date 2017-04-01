@@ -2,8 +2,10 @@ package ru.zerotime.translator;
 
 /**
  * Created by zeburek on 19.03.2017.
+ * Class for custom ListItem
+ * This class is for History items
  */
-public class TListItem {
+public class THistoryListItem {
 
     public String getMainText() {
         return mainText;

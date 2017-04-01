@@ -38,6 +38,7 @@ public class SettingsCustomAdapter extends BaseAdapter {
         return position;
     }
 
+    /*Setting my own view of Item in Settings ListView*/
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 

@@ -2,11 +2,10 @@ package ru.zerotime.translator;
 
 /**
  * Created by zeburek on 19.03.2017.
+ * Class for custom ListItem
+ * This class is for Settings items
  */
 
-/**
- * Created by prats on 5/28/2015.
- */
 public class TSettingsListItem {
 
     public String getMainText() {
